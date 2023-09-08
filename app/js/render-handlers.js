@@ -1,5 +1,5 @@
 import { fetchCategories, fetchMealById, fetchMealsByCategory } from './fetch-handlers';
-import { bookmark, isBookmarked, unbookmark } from './store';
+import { bookmark, isBookmarked, unbookmark, getCategories } from './store';
 
 export async function renderApp() {
   document.querySelector('#app').innerHTML = `
@@ -17,7 +17,7 @@ export async function renderApp() {
     </div>
   `
 
-  const [categories] = await fetchCategories();
+  const categories = await getCategories();
   categories.forEach(renderCategoryOption);
 
   renderMealsByCategory(categories[0].strCategory);
