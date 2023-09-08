@@ -46,7 +46,6 @@ export function renderMeal({ idMeal, strMeal, strMealThumb }) {
   mealDiv.setAttribute('id', `meal-${idMeal}`);
   mealDiv.innerHTML = `
     <h3>${strMeal}</h3>
-    <img src="${strMealThumb}">
   `
   mealDiv.addEventListener('click', () => {
     renderMealRecipe(idMeal);
@@ -66,7 +65,13 @@ export function renderMeal({ idMeal, strMeal, strMealThumb }) {
     document.querySelector("#meals").append(mealDiv);
   }
 
-  mealDiv.append(bookmarkButton);
+  const mealCardImageContainer = document.createElement('div');
+  mealCardImageContainer.className = "mealCardImageContainer"
+  mealDiv.append(mealCardImageContainer);
+
+  const img = document.createElement(`img`);
+  img.src = strMealThumb;
+  mealCardImageContainer.append(bookmarkButton, img);
 }
 
 async function renderMealRecipe(idMeal) {
