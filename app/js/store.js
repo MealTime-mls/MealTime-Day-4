@@ -2,36 +2,50 @@ import { fetchCategories, fetchMealById, fetchMealsByCategory } from './fetch-ha
 
 export const bookmarks = JSON.parse(localStorage.getItem('bookmarks')) || [];
 export const categories = JSON.parse(localStorage.getItem('categories')) || [];
+export const mealsByCategory = JSON.parse(localStorage.getItem('mealsByCategory')) || {};
 export const meals = JSON.parse(localStorage.getItem('meals')) || {};
 
 export const getCategories = async () => {
   if (categories.length === 0) {
-    console.log("fetching categories");
     let [data, error] = await fetchCategories();
     if (error) {
       console.log(error);
+      return [];
     }
     categories.push(...data);
     localStorage.setItem('categories', JSON.stringify(categories));
+  }
+  return categories;
+}
+
+export const getMealsByCategory = async (category) => {
+  if (!mealsByCategory[category]) {
+    let [data, error] = await fetchMealsByCategory(category);
+    if (error) {
+      console.log(error);
+      return [];
+    }
+    mealsByCategory[category] = data;
+    localStorage.setItem('mealsByCateogory', JSON.stringify(mealsByCategory));
+  }
+  return mealsByCategory[category];
+}
+
+export const getMealById = async (id) => {
+  if (!meals[id]) {
+    console.log("fetching meal");
+    let [data, error] = await fetchMealById(id);
+    if (error) {
+      console.log(error);
+      return {};
+    }
+    meals[id] = data;
+    localStorage.setItem('meals', JSON.stringify(meals));
   } else {
-    console.log("using cached categories", categories)
+    console.log("using cached meal", meals[id]);
   }
-  return categories;
+  return meals[id];
 }
-
-export const getMeals = async () => {
-  if (categories.length === 0) {
-    let [data, error] = await fetchCategories();
-    if (error) {
-      console.log(error);
-    }
-    categories.push(...data);
-    localStorage.setItem('categories', JSON.stringify(categories));
-  }
-  return categories;
-}
-
-
 
 export const isBookmarked = (id) => {
   return bookmarks.includes(id);

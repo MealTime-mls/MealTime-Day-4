@@ -1,5 +1,4 @@
-import { fetchCategories, fetchMealById, fetchMealsByCategory } from './fetch-handlers';
-import { bookmark, isBookmarked, unbookmark, getCategories } from './store';
+import { bookmark, isBookmarked, unbookmark, getCategories, getMealsByCategory, getMealById } from './store';
 
 export async function renderApp() {
   document.querySelector('#app').innerHTML = `
@@ -37,7 +36,7 @@ export function renderCategoryOption(category) {
 export async function renderMealsByCategory(category) {
   document.querySelector("#meals").innerHTML = "";
   document.querySelector("#favorites").innerHTML = "";
-  const [meals] = await fetchMealsByCategory(category);
+  const meals = await getMealsByCategory(category);
   meals.forEach(renderMeal);
 }
 
@@ -71,7 +70,7 @@ export function renderMeal({ idMeal, strMeal, strMealThumb }) {
 }
 
 async function renderMealRecipe(idMeal) {
-  const [meal] = await fetchMealById(idMeal);
+  const meal = await getMealById(idMeal);
   const recipeOverlay = document.querySelector("#recipeOverlay");
   recipeOverlay.className = "visible"
   recipeOverlay.innerHTML = `
