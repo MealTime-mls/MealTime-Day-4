@@ -102,9 +102,9 @@ button:focus-visible {
   }
 }
 
-#meals {
+#meals, #favorites {
   display: grid;
-  grid-template-columns: auto auto auto;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1rem;
   align-items: end;
 }
@@ -114,9 +114,18 @@ button:focus-visible {
   flex-direction: column;
   min-width: 200px;
   max-width: 250px;
+  position: relative;
+}
+
+.mealCard .bookmarkButton {
+  position: absolute;
+  bottom: 210px;
+  padding: 8px;
+  right: 3px;
 }
 
 img {
+  border-radius:8px;
   width: 100%;
 }
 
@@ -153,7 +162,7 @@ img {
   height: fit-content;
 }
 
-#bookmarkButton.bookmarked {
+.bookmarkButton.bookmarked {
   background-color: rgb(8, 180, 8);
 }
 
@@ -183,8 +192,7 @@ img {
 }
 
 #overlayImageContainer {
-  max-width: 50%;
-  max-height: 450px;
+  max-width: min(50%, 450px);
   padding: 10px;
 }
 
@@ -197,7 +205,7 @@ img {
 }
 
 @media screen and (max-width: 700px) {
-  #meals {
+  #meals, {
     grid-template-columns: auto;
     justify-content: center;
   }

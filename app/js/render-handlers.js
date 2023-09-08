@@ -1,11 +1,15 @@
 import { fetchCategories, fetchMealById, fetchMealsByCategory } from './fetch-handlers';
-import bookmarks, { bookmark, isBookmarked, unbookmark } from './store';
+import { bookmark, isBookmarked, unbookmark } from './store';
 
 export async function renderApp() {
   document.querySelector('#app').innerHTML = `
     <div>
       <h1>Meal Time!</h1>
       <select id="category" name="category"></select>
+      <h2>Favorites</h2>
+        <div id="favorites">
+      </div>
+      <hr>
       <div id="meals"></div>
       <p id="error"></p>
     </div>
@@ -13,10 +17,7 @@ export async function renderApp() {
     </div>
   `
 
-  const [categories, categoriesError] = await fetchCategories();
-  if (categoriesError) {
-    console.log(categoriesError);
-  }
+  const [categories] = await fetchCategories();
   categories.forEach(renderCategoryOption);
 
   renderMealsByCategory(categories[0].strCategory);
@@ -26,15 +27,6 @@ export async function renderApp() {
   })
 }
 
-export async function renderMealsByCategory(category) {
-  document.querySelector("#meals").innerHTML = "";
-  const [meals, mealsError] = await fetchMealsByCategory(category);
-  if (mealsError) {
-    console.log(mealsError);
-  }
-  meals.forEach(renderMeal);
-}
-
 export function renderCategoryOption(category) {
   const option = document.createElement("option");
   option.value = category.strCategory;
@@ -42,27 +34,51 @@ export function renderCategoryOption(category) {
   document.querySelector("#category").append(option);
 }
 
-export function renderMeal(meal) {
+export async function renderMealsByCategory(category) {
+  document.querySelector("#meals").innerHTML = "";
+  document.querySelector("#favorites").innerHTML = "";
+  const [meals] = await fetchMealsByCategory(category);
+  meals.forEach(renderMeal);
+}
+
+export function renderMeal({ idMeal, strMeal, strMealThumb }) {
   const mealDiv = document.createElement("div");
   mealDiv.className = "mealCard";
+  mealDiv.setAttribute('id', `meal-${idMeal}`);
   mealDiv.innerHTML = `
-    <h2>${meal.strMeal}</h2>
-    <img src="${meal.strMealThumb}">
+    <h3>${strMeal}</h3>
+    <img src="${strMealThumb}">
   `
   mealDiv.addEventListener('click', () => {
-    renderMealRecipe(meal.idMeal);
+    renderMealRecipe(idMeal);
   });
-  document.querySelector("#meals").append(mealDiv);
+
+  const bookmarkButton = document.createElement('button');
+  bookmarkButton.className = `bookmarkButton ${isBookmarked(idMeal) ? "bookmarked" : ""}`;
+  bookmarkButton.innerHTML = `♡`;
+  bookmarkButton.addEventListener('click', (e) => {
+    e.stopPropagation();
+    bookmarkMeal(e, idMeal)
+  });
+
+  if (isBookmarked(idMeal)) {
+    document.querySelector("#favorites").append(mealDiv);
+  } else {
+    document.querySelector("#meals").append(mealDiv);
+  }
+
+  mealDiv.append(bookmarkButton);
 }
 
 async function renderMealRecipe(idMeal) {
-  const [meal, error] = await fetchMealById(idMeal);
+  const [meal] = await fetchMealById(idMeal);
   const recipeOverlay = document.querySelector("#recipeOverlay");
+  recipeOverlay.className = "visible"
   recipeOverlay.innerHTML = `
     <div id="recipeOverlayContents">
       <div id="overlayHeader">
         <button id="closeOverlayButton">X</button>
-        <button id="bookmarkButton" class="${isBookmarked(idMeal) ? "bookmarked" : ""}">♡</button>
+        <button id="overlayBookmarkButton" class="bookmarkButton ${isBookmarked(idMeal) ? "bookmarked" : ""}">♡</button>
         </div>
       <h2 id="recipeTitle">${meal.strMeal}</h2>
       <div id="overlayImageAndIngredients">
@@ -81,33 +97,34 @@ async function renderMealRecipe(idMeal) {
     </div>
   `;
 
+  // Find and list the ingredients
   let ingredientNum = 1;
   let ingredient = meal[`strIngredient${ingredientNum}`];
   let amount = meal[`strMeasure${ingredientNum}`];
   const ingredientsList = document.querySelector("#ingredientsList");
   while (ingredient) {
-    ingredientsList.innerHTML += `
-      <li>${ingredient}: <em>${amount}</em></li>
-    `;
+    ingredientsList.innerHTML += `<li>${ingredient}: <em>${amount}</em></li>`;
     ingredientNum++;
     ingredient = meal[`strIngredient${ingredientNum}`];
     amount = meal[`strMeasure${ingredientNum}`];
   }
 
-  recipeOverlay.className = "visible"
-
   document.querySelector("#closeOverlayButton").addEventListener('click', () => {
     recipeOverlay.className = "hidden";
   });
 
-  const bookmarkButton = document.querySelector("#bookmarkButton")
-  bookmarkButton.addEventListener('click', () => {
-    bookmarkButton.className = isBookmarked(idMeal) ? "" : "bookmarked";
-    if (!isBookmarked(idMeal)) {
-      bookmark(idMeal);
-    } else {
-      unbookmark(idMeal);
-    }
-    console.log(bookmarks);
-  })
+  document.querySelector("#overlayBookmarkButton").addEventListener('click', (e) => bookmarkMeal(e, idMeal))
+}
+
+const bookmarkMeal = (e, idMeal) => {
+  e.target.className = `bookmarkButton ${isBookmarked(idMeal) ? "" : "bookmarked"}`;
+  const mealCard = document.querySelector(`#meal-${idMeal}`)
+  mealCard.remove();
+  if (!isBookmarked(idMeal)) {
+    bookmark(idMeal);
+    document.querySelector("#favorites").append(mealCard);
+  } else {
+    unbookmark(idMeal);
+    document.querySelector("#meals").append(mealCard);
+  }
 }
