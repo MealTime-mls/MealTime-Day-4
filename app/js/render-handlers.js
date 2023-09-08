@@ -123,12 +123,11 @@ async function renderMealRecipe(idMeal) {
 const bookmarkMeal = (e, idMeal) => {
   e.target.className = `bookmarkButton ${isBookmarked(idMeal) ? "" : "bookmarked"}`;
   const mealCard = document.querySelector(`#meal-${idMeal}`)
-  mealCard.remove();
   if (!isBookmarked(idMeal)) {
     bookmark(idMeal);
-    document.querySelector("#favorites").append(mealCard);
   } else {
     unbookmark(idMeal);
-    document.querySelector("#meals").append(mealCard);
   }
+  const currentCategory = document.querySelector("#category").value
+  renderMealsByCategory(currentCategory);
 }

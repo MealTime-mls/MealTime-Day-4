@@ -9,7 +9,7 @@ export const getCategories = async () => {
   if (categories.length === 0) {
     let [data, error] = await fetchCategories();
     if (error) {
-      console.log(error);
+      console.error(error);
       return [];
     }
     categories.push(...data);
@@ -22,7 +22,7 @@ export const getMealsByCategory = async (category) => {
   if (!mealsByCategory[category]) {
     let [data, error] = await fetchMealsByCategory(category);
     if (error) {
-      console.log(error);
+      console.error(error);
       return [];
     }
     mealsByCategory[category] = data;
@@ -33,16 +33,13 @@ export const getMealsByCategory = async (category) => {
 
 export const getMealById = async (id) => {
   if (!meals[id]) {
-    console.log("fetching meal");
     let [data, error] = await fetchMealById(id);
     if (error) {
-      console.log(error);
+      console.error(error);
       return {};
     }
     meals[id] = data;
     localStorage.setItem('meals', JSON.stringify(meals));
-  } else {
-    console.log("using cached meal", meals[id]);
   }
   return meals[id];
 }
