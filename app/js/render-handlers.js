@@ -1,25 +1,27 @@
-import { bookmark, isBookmarked, unbookmark, getCategories, getMealsByCategory, getMealById } from './store';
+import {
+  bookmark,
+  isBookmarked,
+  unbookmark,
+  getCategories,
+  getMealsByCategory,
+  getMealById
+} from './store';
 
-export async function renderApp() {
+export const renderApp = async () => {
   document.querySelector('#app').innerHTML = `
-    <div>
-      <h1>Meal Time!</h1>
-      <select id="category" name="category"></select>
-      <h2>Favorites</h2>
-        <div id="favorites">
-      </div>
-      <hr>
-      <div id="meals"></div>
-      <p id="error"></p>
-    </div>
-    <div id='recipeOverlay' class='hidden'>
-    </div>
-  `
+    <h1>Meal Time!</h1>
+    <select id="category" name="category"></select>
+    <h2>Favorites</h2>
+    <div id="favorites"></div>
+    <hr>
+    <div id="meals"></div>
+    <p id="error"></p>
+    <div id='recipeOverlay' class='hidden'></div>
+  `;
 
   const categories = await getCategories();
   categories.forEach(renderCategoryOption);
-
-  renderMealsByCategory(categories[0].strCategory);
+  renderMealsByCategory(categories[0]?.strCategory || 'Beef');
 
   document.querySelector('#category').addEventListener('change', (e) => {
     renderMealsByCategory(e.target.value);
@@ -44,9 +46,7 @@ export function renderMeal({ idMeal, strMeal, strMealThumb }) {
   const mealDiv = document.createElement("div");
   mealDiv.className = "mealCard";
   mealDiv.setAttribute('id', `meal-${idMeal}`);
-  mealDiv.innerHTML = `
-    <h3>${strMeal}</h3>
-  `
+  mealDiv.innerHTML = `<h3>${strMeal}</h3>`
   mealDiv.addEventListener('click', () => {
     renderMealRecipe(idMeal);
   });
@@ -59,11 +59,8 @@ export function renderMeal({ idMeal, strMeal, strMealThumb }) {
     bookmarkMeal(e, idMeal)
   });
 
-  if (isBookmarked(idMeal)) {
-    document.querySelector("#favorites").append(mealDiv);
-  } else {
-    document.querySelector("#meals").append(mealDiv);
-  }
+  const parentEl = isBookmarked(idMeal) ? "#favorites" : "#meals";
+  document.querySelector(parentEl).append(mealDiv);
 
   const mealCardImageContainer = document.createElement('div');
   mealCardImageContainer.className = "mealCardImageContainer"
@@ -77,7 +74,7 @@ export function renderMeal({ idMeal, strMeal, strMealThumb }) {
 async function renderMealRecipe(idMeal) {
   const meal = await getMealById(idMeal);
   const recipeOverlay = document.querySelector("#recipeOverlay");
-  recipeOverlay.className = "visible"
+  recipeOverlay.classList.toggle("hidden");
   recipeOverlay.innerHTML = `
     <div id="recipeOverlayContents">
       <div id="overlayHeader">
@@ -114,7 +111,7 @@ async function renderMealRecipe(idMeal) {
   }
 
   document.querySelector("#closeOverlayButton").addEventListener('click', () => {
-    recipeOverlay.className = "hidden";
+    recipeOverlay.classList.toggle("hidden")
   });
 
   document.querySelector("#overlayBookmarkButton").addEventListener('click', (e) => bookmarkMeal(e, idMeal))
@@ -122,12 +119,7 @@ async function renderMealRecipe(idMeal) {
 
 const bookmarkMeal = (e, idMeal) => {
   e.target.className = `bookmarkButton ${isBookmarked(idMeal) ? "" : "bookmarked"}`;
-  const mealCard = document.querySelector(`#meal-${idMeal}`)
-  if (!isBookmarked(idMeal)) {
-    bookmark(idMeal);
-  } else {
-    unbookmark(idMeal);
-  }
+  !isBookmarked(idMeal) ? bookmark(idMeal) : unbookmark(idMeal);
   const currentCategory = document.querySelector("#category").value
   renderMealsByCategory(currentCategory);
 }

@@ -1,62 +1,61 @@
 import { fetchCategories, fetchMealById, fetchMealsByCategory } from './fetch-handlers';
 
-export const bookmarks = JSON.parse(localStorage.getItem('bookmarks')) || [];
-export const categories = JSON.parse(localStorage.getItem('categories')) || [];
-export const mealsByCategory = JSON.parse(localStorage.getItem('mealsByCategory')) || {};
-export const meals = JSON.parse(localStorage.getItem('meals')) || {};
+/** 
+ * Helper functions for local storage
+*/
+const getState = (property) => {
+  try {
+    return JSON.parse(localStorage.getItem(property));
+  } catch (error) {
+    console.error;
+    return null;
+  }
+}
+
+const setState = (property, value) => {
+  localStorage.setItem(property, JSON.stringify(value));
+}
+
 
 export const getCategories = async () => {
-  if (categories.length === 0) {
-    let [data, error] = await fetchCategories();
-    if (error) {
-      console.error(error);
-      return [];
-    }
-    categories.push(...data);
-    localStorage.setItem('categories', JSON.stringify(categories));
+  if (!getState('categories')) {
+    let categories = await fetchCategories();
+    setState('categories', categories);
   }
-  return categories;
+  return getState('categories');
 }
 
 export const getMealsByCategory = async (category) => {
+  const mealsByCategory = getState('mealsByCategory') || {};
   if (!mealsByCategory[category]) {
-    let [data, error] = await fetchMealsByCategory(category);
-    if (error) {
-      console.error(error);
-      return [];
-    }
-    mealsByCategory[category] = data;
-    localStorage.setItem('mealsByCateogory', JSON.stringify(mealsByCategory));
+    let meals = await fetchMealsByCategory(category);
+    mealsByCategory[category] = meals;
+    setState('mealsByCategory', mealsByCategory);
   }
-  return mealsByCategory[category];
+  return getState('mealsByCategory')[category];
 }
 
 export const getMealById = async (id) => {
+  const meals = getState('meals') || {};
   if (!meals[id]) {
-    let [data, error] = await fetchMealById(id);
-    if (error) {
-      console.error(error);
-      return {};
-    }
-    meals[id] = data;
+    let meal = await fetchMealById(id);
+    meals[id] = meal;
     localStorage.setItem('meals', JSON.stringify(meals));
   }
+  console.log(meals[id]);
   return meals[id];
 }
 
 export const isBookmarked = (id) => {
+  const bookmarks = getState('bookmarks') || [];
   return bookmarks.includes(id);
 }
 
 export const bookmark = (id) => {
-  bookmarks.push(id);
-  localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
+  setState('bookmarks', [...getState('bookmarks'), id]);
 }
 
 export const unbookmark = (id) => {
-  const index = bookmarks.indexOf(id);
-  bookmarks.splice(index, 1);
-  localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
+  const bookmarks = getState('bookmarks') || [];
+  setState('bookmarks', bookmarks.filter(bookmark => bookmark !== id));
 }
-
-export default bookmarks;
