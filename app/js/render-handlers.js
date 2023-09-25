@@ -88,7 +88,10 @@ async function renderMealRecipe(idMeal) {
         </div>
         <div id="overlayIngredientsContainer">
           <h3>Ingredients</h3>
-          <ul id="ingredientsList"></ul>
+          <table>
+            <tbody id="ingredientsList">
+            </tbody>
+          </table>
         </div>
       </div>
       <div id="recipeInstructionsContainer">
@@ -99,16 +102,13 @@ async function renderMealRecipe(idMeal) {
   `;
 
   // Find and list the ingredients
-  let ingredientNum = 1;
-  let ingredient = meal[`strIngredient${ingredientNum}`];
-  let amount = meal[`strMeasure${ingredientNum}`];
   const ingredientsList = document.querySelector("#ingredientsList");
-  while (ingredient) {
-    ingredientsList.innerHTML += `<li>${ingredient}: <em>${amount}</em></li>`;
-    ingredientNum++;
-    ingredient = meal[`strIngredient${ingredientNum}`];
-    amount = meal[`strMeasure${ingredientNum}`];
-  }
+  Object.entries(meal)
+    .filter(([key, value]) => value && key.includes("strIngredient"))
+    .forEach(([key, ingredient]) => {
+      const measure = meal[key.replace('strIngredient', 'strMeasure')];
+      ingredientsList.innerHTML += `<tr><td>${ingredient}</td><td>${measure}</td></tr>`;
+    })
 
   document.querySelector("#closeOverlayButton").addEventListener('click', () => {
     recipeOverlay.classList.toggle("hidden")
